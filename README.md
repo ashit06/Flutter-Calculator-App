@@ -1,16 +1,68 @@
-# flutter_demo
+Flutter Calculator App
 
-A new Flutter project.
+A simple and stylish calculator app built with Flutter, featuring dark mode support and a history-saving feature.
 
-## Getting Started
+Features
 
-This project is a starting point for a Flutter application.
+🌗 Light & Dark Mode toggle
 
-A few resources to get you started if this is your first Flutter project:
+🧮 Basic Arithmetic Operations (Addition, Subtraction, Multiplication, Division)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+💾 Save Calculation History
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+📜 Scrollable History View
+
+🎨 Material Design UI with custom themes
+
+📱 Drawer Menu for easy navigation
+
+Screenshots
+
+<img width="493" alt="Screenshot 2025-02-07 at 11 46 51 PM" src="https://github.com/user-attachments/assets/58f2ab92-dc8a-4baf-95cd-7ecf6155c020" />
+<img width="496" alt="Screenshot 2025-02-07 at 11 46 21 PM" src="https://github.com/user-attachments/assets/90d247ad-dab0-498e-9ad8-35d5c92cadf3" />
+<img width="492" alt="Screenshot 2025-02-07 at 11 46 01 PM" src="https://github.com/user-attachments/assets/da8aa279-581a-4fca-8636-6ffe2075cae3" />
+
+
+Installation
+
+To run this project locally:
+
+1) Clone the File in your System.
+2) Install and configure all the dependencies for a flutter project.
+3) In the lib open main.dart and run the file (making sure an emulator is open or connected to a physical device).
+
+Usage
+
+Perform basic arithmetic operations.
+
+Switch between light and dark themes using the toggle button.
+
+Save calculations to the history panel.
+
+Navigate through the app using the drawer menu.
+
+Technologies Used
+
+Flutter (Dart)
+
+Material Design
+
+Contributing
+
+Pull requests are welcome! Follow these steps to contribute:
+
+Fork the repository.
+
+Create a new branch (git checkout -b feature-branch).
+
+Commit your changes (git commit -m 'Add new feature').
+
+Push to the branch (git push origin feature-branch).
+
+Open a Pull Request.
+
+Contact
+
+For any questions or feedback, feel free to reach out:
+
+📧 Email: arpitagrahariofficial@gmail.com
