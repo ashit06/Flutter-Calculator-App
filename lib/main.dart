@@ -4,37 +4,80 @@ void main() {
   runApp(CalculatorApp());
 }
 
-class CalculatorApp extends StatelessWidget {
+class CalculatorApp extends StatefulWidget {
+  @override
+  _CalculatorAppState createState() => _CalculatorAppState();
+}
+
+class _CalculatorAppState extends State<CalculatorApp> {
+  bool _isDarkMode = false;
+
+  void _toggleTheme() {
+    setState(() {
+      _isDarkMode = !_isDarkMode;
+    });
+  }
+
+  final ThemeData _lightTheme = ThemeData(
+    brightness: Brightness.light,
+    primarySwatch: Colors.blueGrey,
+    colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blueGrey)
+        .copyWith(secondary: Colors.orangeAccent),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blueGrey[300],
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    ),
+  );
+
+  final ThemeData _darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    primarySwatch: Colors.blueGrey,
+    colorScheme: ColorScheme.dark(
+      primary: Colors.blueGrey,
+      secondary: Colors.orangeAccent,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blueGrey[700],
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      // Updated theme using colorScheme for accent color
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.deepPurple)
-            .copyWith(secondary: Colors.amber),
-        buttonTheme: ButtonThemeData(
-          buttonColor: Colors.deepPurple, // default button color
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      theme: _lightTheme,
+      darkTheme: _darkTheme,
+      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      home: CalculatorScreen(
+        isDarkMode: _isDarkMode,
+        onThemeToggle: _toggleTheme,
       ),
-      home: CalculatorScreen(),
     );
   }
 }
 
 class CalculatorScreen extends StatefulWidget {
+  final bool isDarkMode;
+  final VoidCallback onThemeToggle;
+
+  CalculatorScreen({required this.isDarkMode, required this.onThemeToggle});
+
   @override
   _CalculatorScreenState createState() => _CalculatorScreenState();
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
   String _expression = "";
-  List<String> _savedHistory = []; // Holds saved outputs
+  List<String> _savedHistory = [];
   final ScrollController _scrollController = ScrollController();
 
-  // Called when any button is pressed
   void _onPressed(String value) {
     setState(() {
       if (value == "C") {
@@ -51,73 +94,58 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     });
   }
 
-  // Evaluates the expression string and returns the result as a string.
-  String _evaluateExpression(String expression) {
+    String _evaluateExpression(String expression) {
     try {
       double result = _evaluate(expression);
       return result.toString();
     } catch (e) {
-      print('Error evaluating expression: $e');
       return "Error";
     }
   }
 
-  // Evaluates a simple arithmetic expression using the shunting-yard algorithm
   double _evaluate(String expression) {
     List<String> tokens = _tokenize(expression);
     List<String> postfix = _infixToPostfix(tokens);
     return _evaluatePostfix(postfix);
   }
 
-  // Tokenizes the input expression into numbers and operators
   List<String> _tokenize(String expression) {
-    // This regex matches numbers (with optional decimals) and operators
     RegExp regExp = RegExp(r'(\d+\.?\d*|[+\-*/])');
     Iterable<RegExpMatch> matches = regExp.allMatches(expression);
     return matches.map((m) => m.group(0)!).toList();
   }
 
-  // Returns the precedence of an operator
+  List<String> _infixToPostfix(List<String> tokens) {
+    List<String> output = [];
+    List<String> operators = [];
+    for (String token in tokens) {
+      if (double.tryParse(token) != null) {
+        output.add(token);
+      } else {
+        while (operators.isNotEmpty && _precedence(operators.last) >= _precedence(token)) {
+          output.add(operators.removeLast());
+        }
+        operators.add(token);
+      }
+    }
+    while (operators.isNotEmpty) {
+      output.add(operators.removeLast());
+    }
+    return output;
+  }
+
   int _precedence(String operator) {
     if (operator == '+' || operator == '-') return 1;
     if (operator == '*' || operator == '/') return 2;
     return 0;
   }
 
-  // Converts an infix expression (as tokens) to postfix notation
-  List<String> _infixToPostfix(List<String> tokens) {
-    List<String> output = [];
-    List<String> operators = [];
-
-    for (String token in tokens) {
-      if (double.tryParse(token) != null) {
-        output.add(token);
-      } else if (token == '+' || token == '-' || token == '*' || token == '/') {
-        while (operators.isNotEmpty &&
-            _precedence(operators.last) >= _precedence(token)) {
-          output.add(operators.removeLast());
-        }
-        operators.add(token);
-      }
-    }
-
-    while (operators.isNotEmpty) {
-      output.add(operators.removeLast());
-    }
-
-    return output;
-  }
-
-  // Evaluates a postfix (Reverse Polish Notation) expression
   double _evaluatePostfix(List<String> tokens) {
     List<double> stack = [];
-
     for (String token in tokens) {
-      double? number = double.tryParse(token);
-      if (number != null) {
-        stack.add(number);
+      if (double.tryParse(token) != null) {
+        stack.add(double.parse(token));
       } else {
-        if (stack.length < 2) throw Exception('Invalid Expression');
         double b = stack.removeLast();
         double a = stack.removeLast();
         switch (token) {
@@ -134,17 +162,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             if (b == 0) throw Exception('Division by zero');
             stack.add(a / b);
             break;
-          default:
-            throw Exception('Unknown operator');
         }
       }
     }
-
-    if (stack.length != 1) throw Exception('Invalid Expression');
     return stack.first;
   }
 
-  // Creates a calculator button with the given text
+  
+
   Widget _buildButton(String text) {
     return Expanded(
       child: Padding(
@@ -152,9 +177,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         child: ElevatedButton(
           onPressed: () => _onPressed(text),
           style: ElevatedButton.styleFrom(
-            elevation: 5,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             padding: EdgeInsets.all(20),
+            backgroundColor: widget.isDarkMode ? Colors.blueGrey[800] : Colors.blueGrey[300],
+            foregroundColor: Colors.white,
           ),
           child: Text(text, style: TextStyle(fontSize: 24)),
         ),
@@ -162,20 +187,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 
-  // Save the current expression to history and scroll to bottom
   void _saveExpression() {
     if (_expression.isNotEmpty) {
       setState(() {
         _savedHistory.add(_expression);
       });
-      // Scroll to the bottom after the frame is rendered.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
         }
       });
     }
@@ -185,25 +204,32 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Basic Calculator"),
-        actions: <Widget>[
-          // Save button icon
+        title: Text("Calculator"),
+        actions: [
+          IconButton(
+            onPressed: widget.onThemeToggle,
+            icon: AnimatedSwitcher(
+              duration: Duration(milliseconds: 300),
+              child: widget.isDarkMode
+                  ? Icon(Icons.nightlight_round, key: ValueKey('moon'))
+                  : Icon(Icons.wb_sunny, key: ValueKey('sun')),
+            ),
+          ),
           IconButton(
             icon: Icon(Icons.save),
             onPressed: _saveExpression,
           ),
-        ],
+          
+        ], 
       ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.deepPurple),
-              child: Text(
-                "Calculator Menu",
-                style: TextStyle(color: Colors.white, fontSize: 24),
-              ),
+              decoration: BoxDecoration(color: Colors.blueGrey),
+              child: Text("Calculator Menu", style: TextStyle(color: Colors.white, fontSize: 24)),
+              
             ),
             ListTile(
               title: Text("Home"),
@@ -217,11 +243,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         ),
       ),
       body: Column(
-        children: <Widget>[
-          // History area: a fixed height container with a scrollable ListView
+        children: [
           Container(
-            height: 150,
-            color: Colors.deepPurple[50],
+            height: 120,
+            color: widget.isDarkMode ? Colors.grey[900] : Colors.blueGrey[50],
             child: _savedHistory.isEmpty
                 ? Center(child: Text("No saved outputs", style: TextStyle(fontSize: 16)))
                 : ListView.builder(
@@ -231,51 +256,39 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       return ListTile(
                         title: Text(
                           _savedHistory[index],
-                          style: TextStyle(fontSize: 18),
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: widget.isDarkMode ? Colors.orangeAccent : Colors.blueGrey[800],
+                          ),
                         ),
                       );
                     },
                   ),
           ),
-          // Calculator area: current expression display and button grid
           Expanded(
             child: Column(
-              children: <Widget>[
-                // Display for current expression/result
+              children: [
                 Expanded(
                   child: Container(
                     alignment: Alignment.bottomRight,
                     padding: EdgeInsets.all(16),
                     child: Text(
                       _expression,
-                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
-                // Button grid for the calculator
                 Column(
                   children: [
-                    Row(
-                      children: ["7", "8", "9", "/"]
-                          .map((text) => _buildButton(text))
-                          .toList(),
-                    ),
-                    Row(
-                      children: ["4", "5", "6", "*"]
-                          .map((text) => _buildButton(text))
-                          .toList(),
-                    ),
-                    Row(
-                      children: ["1", "2", "3", "-"]
-                          .map((text) => _buildButton(text))
-                          .toList(),
-                    ),
-                    Row(
-                      children: ["C", "0", "=", "+"]
-                          .map((text) => _buildButton(text))
-                          .toList(),
-                    ),
-                  ],
+                    ["7", "8", "9", "/"],
+                    ["4", "5", "6", "*"],
+                    ["1", "2", "3", "-"],
+                    ["C", "0", "=", "+"],
+                  ].map((row) {
+                    return Row(
+                      children: row.map((text) => _buildButton(text)).toList(),
+                    );
+                  }).toList(),
                 ),
               ],
             ),
