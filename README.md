@@ -18,9 +18,12 @@ Features
 
 Screenshots
 
-<img width="493" alt="Screenshot 2025-02-07 at 11 46 51 PM" src="https://github.com/user-attachments/assets/58f2ab92-dc8a-4baf-95cd-7ecf6155c020" />
-<img width="496" alt="Screenshot 2025-02-07 at 11 46 21 PM" src="https://github.com/user-attachments/assets/90d247ad-dab0-498e-9ad8-35d5c92cadf3" />
-<img width="492" alt="Screenshot 2025-02-07 at 11 46 01 PM" src="https://github.com/user-attachments/assets/da8aa279-581a-4fca-8636-6ffe2075cae3" />
+<img width="517" alt="Screenshot 2025-02-08 at 3 12 38 PM" src="https://github.com/user-attachments/assets/cba51c78-256c-438d-b303-febb49b389fc" />
+<img width="505" alt="Screenshot 2025-02-08 at 3 13 45 PM" src="https://github.com/user-attachments/assets/93c912d1-131e-4cf2-a8b8-bf8d462bb7bf" />
+<img width="504" alt="Screenshot 2025-02-08 at 3 14 38 PM" src="https://github.com/user-attachments/assets/a1ab9c76-a06c-420f-93bc-2c70b6fa5f7e" />
+
+
+
 
 
 Installation
@@ -65,4 +68,4 @@ Contact
 
 For any questions or feedback, feel free to reach out:
 
-📧 Email: arpitagrahariofficial@gmail.com
+📧 Email: arpitagrahariofficial+github@gmail.com
