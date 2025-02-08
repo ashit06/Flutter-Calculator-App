@@ -77,24 +77,58 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   String _expression = "";
   List<String> _savedHistory = [];
   final ScrollController _scrollController = ScrollController();
+  double _memory = 0.0; // Memory variable
 
+  /// Handles all button presses.
+  /// Note: The stack-based calculation logic is preserved in _evaluateExpression.
   void _onPressed(String value) {
     setState(() {
       if (value == "C") {
+        // Clear entire expression
         _expression = "";
+      } else if (value == "⌫") {
+        // Remove last character (backspace)
+        if (_expression.isNotEmpty) {
+          _expression = _expression.substring(0, _expression.length - 1);
+        }
       } else if (value == "=") {
+        // Evaluate expression using the existing stack-based logic
         try {
           _expression = _evaluateExpression(_expression);
         } catch (e) {
           _expression = "Invalid Expression";
         }
+      } else if (value == "MC") {
+        // Memory Clear
+        _memory = 0.0;
+      } else if (value == "MR") {
+        // Memory Recall: replace current expression with memory value
+        _expression = _memory.toString();
+      } else if (value == "M+") {
+        // Memory Add: evaluate current expression and add it to memory
+        try {
+          double currentVal = double.parse(_evaluateExpression(_expression));
+          _memory += currentVal;
+        } catch (e) {
+          _expression = "Error";
+        }
+      } else if (value == "M-") {
+        // Memory Subtract: evaluate current expression and subtract it from memory
+        try {
+          double currentVal = double.parse(_evaluateExpression(_expression));
+          _memory -= currentVal;
+        } catch (e) {
+          _expression = "Error";
+        }
       } else {
+        // Append numbers/operators to the expression
         _expression += value;
       }
     });
   }
 
-    String _evaluateExpression(String expression) {
+  /// Uses the existing stack-based evaluation functions.
+  String _evaluateExpression(String expression) {
     try {
       double result = _evaluate(expression);
       return result.toString();
@@ -122,7 +156,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       if (double.tryParse(token) != null) {
         output.add(token);
       } else {
-        while (operators.isNotEmpty && _precedence(operators.last) >= _precedence(token)) {
+        while (operators.isNotEmpty &&
+            _precedence(operators.last) >= _precedence(token)) {
           output.add(operators.removeLast());
         }
         operators.add(token);
@@ -168,25 +203,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     return stack.first;
   }
 
-  
-
-  Widget _buildButton(String text) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ElevatedButton(
-          onPressed: () => _onPressed(text),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.all(20),
-            backgroundColor: widget.isDarkMode ? Colors.blueGrey[800] : Colors.blueGrey[300],
-            foregroundColor: Colors.white,
-          ),
-          child: Text(text, style: TextStyle(fontSize: 24)),
-        ),
-      ),
-    );
-  }
-
+  /// Saves the current expression to the history.
   void _saveExpression() {
     if (_expression.isNotEmpty) {
       setState(() {
@@ -200,8 +217,46 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
   }
 
+  /// Tapping on a history item sets it as the current expression.
+  void _onHistoryTap(String expr) {
+    setState(() {
+      _expression = expr;
+    });
+  }
+
+  /// Builds an individual calculator button.
+  Widget _buildButton(String text) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ElevatedButton(
+          onPressed: () => _onPressed(text),
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.all(20),
+            backgroundColor:
+                widget.isDarkMode ? Colors.blueGrey[800] : Colors.blueGrey[300],
+            foregroundColor: Colors.white,
+          ),
+          child: Text(text, style: TextStyle(fontSize: 24)),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Updated keypad layout:
+    // - First row: Memory functions (MC, MR, M+, M-)
+    // - Next three rows: Numbers and operators
+    // - Last row: Clear (C), Backspace (⌫), Evaluate (=), and Addition (+)
+    List<List<String>> keypad = [
+      ["MC", "MR", "M+", "M-"],
+      ["7", "8", "9", "/"],
+      ["4", "5", "6", "*"],
+      ["1", "2", "3", "-"],
+      ["C", "⌫", "=", "+"],
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Calculator"),
@@ -219,8 +274,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             icon: Icon(Icons.save),
             onPressed: _saveExpression,
           ),
-          
-        ], 
+        ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -228,8 +282,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(color: Colors.blueGrey),
-              child: Text("Calculator Menu", style: TextStyle(color: Colors.white, fontSize: 24)),
-              
+              child: Text("Calculator Menu",
+                  style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
             ListTile(
               title: Text("Home"),
@@ -244,11 +298,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       ),
       body: Column(
         children: [
+          // History display area (tap any item to edit/reuse it)
           Container(
             height: 120,
-            color: widget.isDarkMode ? Colors.grey[900] : Colors.blueGrey[50],
+            color:
+                widget.isDarkMode ? Colors.grey[900] : Colors.blueGrey[50],
             child: _savedHistory.isEmpty
-                ? Center(child: Text("No saved outputs", style: TextStyle(fontSize: 16)))
+                ? Center(
+                    child: Text("No saved outputs",
+                        style: TextStyle(fontSize: 16)))
                 : ListView.builder(
                     controller: _scrollController,
                     itemCount: _savedHistory.length,
@@ -258,9 +316,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                           _savedHistory[index],
                           style: TextStyle(
                             fontSize: 18,
-                            color: widget.isDarkMode ? Colors.orangeAccent : Colors.blueGrey[800],
+                            color: widget.isDarkMode
+                                ? Colors.orangeAccent
+                                : Colors.blueGrey[800],
                           ),
                         ),
+                        onTap: () => _onHistoryTap(_savedHistory[index]),
                       );
                     },
                   ),
@@ -268,23 +329,21 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           Expanded(
             child: Column(
               children: [
+                // Expression display area
                 Expanded(
                   child: Container(
                     alignment: Alignment.bottomRight,
                     padding: EdgeInsets.all(16),
                     child: Text(
                       _expression,
-                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
+                // Keypad rows
                 Column(
-                  children: [
-                    ["7", "8", "9", "/"],
-                    ["4", "5", "6", "*"],
-                    ["1", "2", "3", "-"],
-                    ["C", "0", "=", "+"],
-                  ].map((row) {
+                  children: keypad.map((row) {
                     return Row(
                       children: row.map((text) => _buildButton(text)).toList(),
                     );
